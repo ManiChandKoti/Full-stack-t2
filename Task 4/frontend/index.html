@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Order Management System</h1>
+            <p>Advanced Insights with JOINs & Subqueries</p>
+        </header>
+
+        <section class="insights-container">
+            <div class="card glass">
+                <div class="card-icon">🏆</div>
+                <div class="card-content">
+                    <h3>Highest Value Order</h3>
+                    <p class="data-value" id="highest-order-value">Loading...</p>
+                    <p class="data-sub" id="highest-order-user">Exploring subqueries...</p>
+                    <div class="sql-badge"
+                        title="SELECT ... WHERE total_amount = (SELECT MAX(total_amount) FROM Orders)">SQL Subquery Used
+                    </div>
+                </div>
+            </div>
+
+            <div class="card glass">
+                <div class="card-icon">🔥</div>
+                <div class="card-content">
+                    <h3>Most Active Customer</h3>
+                    <p class="data-value" id="active-customer-name">Loading...</p>
+                    <p class="data-sub" id="active-customer-count">Aggregating entries...</p>
+                    <div class="sql-badge" title="SELECT customer_name, COUNT(...) GROUP BY ... ORDER BY ... LIMIT 1">
+                        SQL Aggregation Used</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="table-section glass">
+            <div class="table-header">
+                <h2>Customer Order History</h2>
+                <span class="sql-badge" title="SELECT ... FROM Orders JOIN Customers ... JOIN Products ...">SQL JOIN
+                    Used</span>
+            </div>
+            <div class="table-responsive">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Product</th>
+                            <th>Date</th>
+                            <th>Qty</th>
+                            <th>Total ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Code Highlight Modal -->
+    <div class="overlay" id="loader-overlay">
+        <div class="loader"></div>
+        <p>Running SQL Queries...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
