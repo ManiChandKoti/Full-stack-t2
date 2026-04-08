@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs & Enterprise Views</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 2rem;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            background: -webkit-linear-gradient(#38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn.update {
+            background: #f59e0b;
+        }
+
+        .btn.update:hover:not(:disabled) {
+            background: #d97706;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #1e293b;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: #1e293b;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        tr:hover {
+            background: #1e293b;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .badge-insert {
+            background: rgba(52, 211, 153, 0.2);
+            color: #34d399;
+        }
+
+        .badge-update {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            outline: none;
+            margin-bottom: 10px;
+            width: calc(50% - 10px);
+        }
+
+        .hint {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header style="text-align: center;">
+        <h1>Automated Enterprise Audit Log</h1>
+        <p style="color: #94a3b8;" id="status-text">Connected to Local Database Backend on Port 3002</p>
+    </header>
+
+    <div class="container">
+        <!-- Input Actions -->
+        <div class="card">
+            <h2>Employee Operations</h2>
+            <div class="form-section">
+                <p>Execute actual <code>INSERT INTO Employees</code> triggering an Audit Log:</p>
+                <input type="text" id="emp-name" placeholder="Employee Name">
+                <input type="number" id="emp-salary" placeholder="Salary">
+                <button class="btn" id="btn-insert" onclick="triggerInsert()">Insert Employee</button>
+            </div>
+
+            <div class="form-section" style="border-top: 1px solid #334155; padding-top: 20px;">
+                <p>Execute actual <code>UPDATE Employees</code> triggering an Audit Log:</p>
+                <input type="number" id="update-id" placeholder="Record ID (e.g. 1)">
+                <input type="number" id="update-salary" placeholder="New Salary">
+                <button class="btn update" id="btn-update" onclick="triggerUpdate()">Update Salary</button>
+            </div>
+
+            <div style="background: #0f172a; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: #cbd5e1; height: 120px; overflow-y: auto;"
+                id="console-log">
+                -- Terminal Output --<br>
+            </div>
+        </div>
+
+        <!-- Displays -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card">
+                <h2>Daily Activity View</h2>
+                <p class="hint">Fetching from <code>SELECT * FROM DailyActivityReport</code></p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Action</th>
+                            <th>Table</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="view-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Raw Audit Log Table</h2>
+                <p class="hint">Dynamically tracked in SQLite Database</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>ID</th>
+                            <th>Old Val</th>
+                            <th>New Val</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3002/api';
+
+        function logConsole(msg) {
+            const cons = document.getElementById('console-log');
+            cons.innerHTML += `> ${msg}<br>`;
+            cons.scrollTo(0, cons.scrollHeight);
+        }
+
+        async function fetchDashboards() {
+            try {
+                // Fetch Audit logs
+                let auditRes = await fetch(`${API}/audit-log`);
+                let auditData = await auditRes.json();
+
+                const auditEl = document.getElementById('audit-body');
+                auditEl.innerHTML = '';
+                auditData.data.forEach(log => {
+                    auditEl.innerHTML += `
+                        <tr>
+                            <td><span class="badge badge-${log.action_type.toLowerCase()}">${log.action_type}</span></td>
+                            <td>${log.record_id}</td>
+                            <td style="font-size: 0.75rem; color: #94a3b8;">${log.old_value || 'NULL'}</td>
+                            <td style="font-size: 0.75rem;">${log.new_value}</td>
+                        </tr>
+                    `;
+                });
+
+                // Fetch Views
+                let viewRes = await fetch(`${API}/daily-activity`);
+                let viewData = await viewRes.json();
+
+                const viewEl = document.getElementById('view-body');
+                viewEl.innerHTML = '';
+                viewData.data.forEach(row => {
+                    viewEl.innerHTML += `<tr><td>${row.activity_date || 'Today'}</td><td>${row.action_type}</td><td>${row.table_name}</td><td>${row.total_actions}</td></tr>`;
+                });
+
+            } catch (err) {
+                console.error("Database connection error");
+                document.getElementById('status-text').innerHTML = "<span style='color:red'>Failed to connect to Local Backend</span>";
+            }
+        }
+
+        async function triggerInsert() {
+            const name = document.getElementById('emp-name').value || 'Unknown';
+            const salary = document.getElementById('emp-salary').value || '0';
+            logConsole(`INSERT INTO Employees VALUES ('${name}', ${salary})...`);
+
+            document.getElementById('btn-insert').disabled = true;
+
+            const res = await fetch(`${API}/insert-employee`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, salary })
+            });
+
+            if (res.ok) {
+                logConsole(`<span style="color:#10b981;">[Database Trigger Fired] Successfully captured in AuditLog!</span>`);
+                await fetchDashboards();
+            } else {
+                logConsole(`<span style="color:#ef4444;">[Database Error] Operations failed!</span>`);
+            }
+            document.getElementById('btn-insert').disabled = false;
+        }
+
+        async function triggerUpdate() {
+            const id = document.getElementById('update-id').value || '1';
+            const salary = document.getElementById('update-salary').value || '0';
+            logConsole(`UPDATE Employees SET salary = ${salary} WHERE record_id = ${id}...`);
+
+            document.getElementById('btn-update').disabled = true;
+
+            const res = await fetch(`${API}/update-employee`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, salary })
+            });
+
+            if (res.ok) {
+                logConsole(`<span style="color:#f59e0b;">[Database Trigger Fired] Update captured in AuditLog!</span>`);
+                await fetchDashboards();
+            } else {
+                logConsole(`<span style="color:#ef4444;">[Database Error] (Ensure ID exists before updating)</span>`);
+            }
+            document.getElementById('btn-update').disabled = false;
+        }
+
+        // Initialize empty
+        fetchDashboards();
+    </script>
+</body>
+
+</html>
